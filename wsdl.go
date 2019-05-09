@@ -155,6 +155,27 @@ type xsdMaxInclusive struct {
 	Value string `xml:"value,attr"`
 }
 
+func getWsdlBodyWithOutAuth(u string) (reader io.ReadCloser, err error) {
+	parse, err := url.Parse(u)
+	if err != nil {
+		return nil, err
+	}
+	if parse.Scheme == "file" {
+		outFile, err := os.Open(parse.Path)
+		if err != nil {
+			return nil, err
+		}
+		return outFile, nil
+	}
+
+	r, err := http.Get(u)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Body, nil
+}
+
 func getWsdlBody(u string, usr string, pwd string) (reader io.ReadCloser, err error) {
 	parse, err := url.Parse(u)
 	if err != nil {
@@ -167,10 +188,6 @@ func getWsdlBody(u string, usr string, pwd string) (reader io.ReadCloser, err er
 		}
 		return outFile, nil
 	}
-	//r, err := http.Get(u)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", u, nil)
@@ -184,7 +201,13 @@ func getWsdlBody(u string, usr string, pwd string) (reader io.ReadCloser, err er
 
 // getWsdlDefinitions sent request to the wsdl url and set definitions on struct
 func getWsdlDefinitions(u string, usr string, pwd string) (wsdl *wsdlDefinitions, err error) {
-	reader, err := getWsdlBody(u, usr, pwd)
+	var reader io.ReadCloser
+	if usr != "" && pwd != "" {
+		reader, err = getWsdlBody(u, usr, pwd)
+	} else {
+		reader, err = getWsdlBodyWithOutAuth(u)
+	}
+
 	if err != nil {
 		return nil, err
 	}

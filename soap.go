@@ -22,7 +22,7 @@ type HeaderParams map[string]string
 type Params map[string]interface{}
 
 // SoapClient return new *Client to handle the requests with the WSDL
-func SoapClient(wsdl string) (*Client, error) {
+func SoapClient(wsdl string, usr string, pwd string) (*Client, error) {
 	_, err := url.Parse(wsdl)
 	if err != nil {
 		return nil, err
@@ -31,6 +31,8 @@ func SoapClient(wsdl string) (*Client, error) {
 	c := &Client{
 		wsdl:       wsdl,
 		HttpClient: &http.Client{},
+		Username:   usr,
+		Password:   pwd,
 	}
 
 	return c, nil
