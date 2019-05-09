@@ -155,7 +155,7 @@ type xsdMaxInclusive struct {
 	Value string `xml:"value,attr"`
 }
 
-func getWsdlBody(u string) (reader io.ReadCloser, err error) {
+func getWsdlBody(u string, usr string, pwd string) (reader io.ReadCloser, err error) {
 	parse, err := url.Parse(u)
 	if err != nil {
 		return nil, err
@@ -167,16 +167,24 @@ func getWsdlBody(u string) (reader io.ReadCloser, err error) {
 		}
 		return outFile, nil
 	}
-	r, err := http.Get(u)
-	if err != nil {
-		return nil, err
+	//r, err := http.Get(u)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", u, nil)
+	if usr != "" && pwd != "" {
+		req.SetBasicAuth(usr, pwd)
 	}
+	r, err := client.Do(req)
+
 	return r.Body, nil
 }
 
 // getWsdlDefinitions sent request to the wsdl url and set definitions on struct
-func getWsdlDefinitions(u string) (wsdl *wsdlDefinitions, err error) {
-	reader, err := getWsdlBody(u)
+func getWsdlDefinitions(u string, usr string, pwd string) (wsdl *wsdlDefinitions, err error) {
+	reader, err := getWsdlBody(u, usr, pwd)
 	if err != nil {
 		return nil, err
 	}
